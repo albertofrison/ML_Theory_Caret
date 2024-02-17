@@ -1,12 +1,16 @@
 ###############################################################################
-# Studying examples to learn more about ML and R Tools (i.e. Caret)
+# Studying examples to learn more about ML and R Tools (i.e. Caret and others)
 # Done with ❤ by Alberto Frison
 # February 2024
+
+# This scripts includes a number of examples (not always covered at their full extent) on ML models found on the internet
+# This is a study material I am using for further my learning - be aware that it can contain mistakes - I publish it into my GitHub so other can rely in the material and in the sources (websites) I refer in the code
 
 
 ################################################################################
 # From the web page - Using Caret for Predictions
 # Source: https://rstudio-pubs-static.s3.amazonaws.com/253860_05f11cddd938407a9cb3b06d9dc38c9a.html
+
 # This is an example of how to apply the CARET machine learning package in R to classify individuals or objects based upon covariates.
 # I use the iris data set as an example that takes characteristics of three flower types using four covariates that describe the flowers (five total variable).
 # More information about the data set can be found here: http://stat.ethz.ch/R-manual/R-devel/library/datasets/html/iris.html
@@ -161,8 +165,119 @@ predict(rmFit1, newdata = head(training), type = "prob")
 
 
 ################################################################################
-# RVEST - single decision tree
+# RPART - single decision tree
+################################################################################
+
+# we now fit a Regression Tree
+rpartFit1 <- train (Species ~ ., data = training, method = "rpart", tuneLength = 30, trControl = fitControl)
+
+
+rpart.plot(rpartFit1$finalModel)
+prp(rpartFit1$finalModel, type = 0, extra = 1, under = TRUE)
+
+
+# alternative 
+rpartFit2 <- rpart (Species ~ ., data = training, method = "class")
+
+# on how to plot rpart objects - https://www.statmethods.net/advstats/cart.html
+plot(rpartFit2, uniform= TRUE) # plots decision tree...
+text (rpartFit2, use.n=TRUE, all=TRUE, cex=.8) # ...plus texts
+summary (rpartFit2) # detailed results inclusing surrogate splits
+printcp(rpartFit2) # display cp table
+plotcp(rpartFit2) # plots cross validation results
+print (rpartFit2) # print results
+
+
+################################################################################
+# Further from Quick-R from DataCamp
+# https://www.statmethods.net/advstats/cart.html
 ################################################################################
 
 
-rvestFit1 <- train (Species ~ ., data = training, method = "rpart", tuneLength = 30, trControl = fitControl)
+# Tree-Based Models
+
+# Recursive partitioning is a fundamental tool in data mining.
+# It helps us explore the structure of a set of data, while developing easy to visualize decision rules for predicting
+# a categorical (classification tree) or continuous (regression tree) outcome.
+
+# This section briefly describes CART modeling, conditional inference trees, and random forests.
+
+# CART Modeling via rpart
+# Classification and regression trees (as described by Brieman, Freidman, Olshen, and Stone) can be generated through the rpart package.
+# Detailed information on rpart is available in An Introduction to Recursive Partitioning Using the RPART Routines.
+# The general steps are provided below followed by two examples.
+
+# 1. Grow the Tree
+# To grow a tree, use
+# rpart(formula, data= , method=,control=) where
+# 
+# formula 	is in the format
+# outcome ~ predictor1+predictor2+predictor3+ect.
+# data= 	specifies the data frame
+# method= 	"class" for a classification tree
+# "anova" for a regression tree
+# control= 	optional parameters for controlling tree growth.
+# For example, control=rpart.control(minsplit=30, cp=0.001) requires that the minimum number of observations in a node be 30 before attempting a split and that a split must decrease the overall lack of fit by a factor of 0.001 (cost complexity factor) before being attempted.
+
+
+# 2. Examine the results
+# The following functions help us to examine the results.
+# printcp(fit) 	display cp table
+# plotcp(fit) 	plot cross-validation results
+# rsq.rpart(fit) 	plot approximate R-squared and relative error for different splits (2 plots). labels are only appropriate for the "anova" method.
+# print(fit) 	print results
+# summary(fit) 	detailed results including surrogate splits
+# plot(fit) 	plot decision tree
+# text(fit) 	label the decision tree plot
+# post(fit, file=) 	create postscript plot of decision tree
+# In trees created by rpart( ), move to the LEFT branch when the stated condition is true (see the graphs below).
+
+# 3. prune tree
+# Prune back the tree to avoid overfitting the data.
+# Typically, you will want to select a tree size that minimizes the cross-validated error, the xerror column printed by printcp( ).
+# Prune the tree to the desired size using
+# prune(fit, cp= )
+# Specifically, use printcp( ) to examine the cross-validated error results, select the complexity parameter associated with minimum error, and place it into the prune( ) function.
+# Alternatively, you can use the code fragment
+# fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"]
+# to automatically select the complexity parameter associated with the smallest cross-validated error. Thanks to HSAUR for this idea.
+
+
+# Classification Tree example
+# Let's use the data frame kyphosis to predict a type of deformation (kyphosis) after surgery, from age in months (Age), number of vertebrae involved (Number), and the highest vertebrae operated on (Start).
+
+ # Classification Tree with rpart
+library(rpart)
+ 
+kyphosis %>%
+  ggplot (aes (x = Start, y= Number, color = Kyphosis)) +
+  geom_point()
+
+kyphosis %>%
+  ggplot (aes (x = Start, fill = Kyphosis)) +
+  geom_bar()
+
+kyphosis %>%
+  ggplot (aes (x =Age , fill = Kyphosis)) +
+  geom_histogram()
+
+kyphosis %>%
+  ggplot (aes (x = Number , fill = Kyphosis)) +
+  geom_histogram()
+
+
+# grow tree
+fitKypt <- rpart(Kyphosis ~ Age + Number + Start, method="class", data=kyphosis)
+
+printcp(fitKypt) # display the results
+plotcp(fitKypt) # visualize cross-validation results
+summary(fitKypt) # detailed summary of splits
+
+# plot tree
+plot(fitKypt, uniform=TRUE, main="Classification Tree for Kyphosis")
+text(fitKypt, use.n=TRUE, all=TRUE, cex=.8)
+
+
+# create attractive postscript plot of tree
+# post(fitKypt, file = "./tree.ps", title = "Classification Tree for Kyphosis")
+# 
