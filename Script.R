@@ -4,7 +4,7 @@
 # February 2024
 
 # This scripts includes a number of examples (not always covered at their full extent) on ML models found on the internet
-# This is a study material I am using for further my learning - be aware that it can contain mistakes - I publish it into my GitHub so other can rely in the material and in the sources (websites) I refer in the code
+# This is a study material I am using for further my learning - be aware that it can contain mistakes - I publish it into my GitHub so others can rely in the material and in the sources (websites) I refer in the code
 
 
 ################################################################################
@@ -242,7 +242,7 @@ print (rpartFit2) # print results
 # fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"]
 # to automatically select the complexity parameter associated with the smallest cross-validated error. Thanks to HSAUR for this idea.
 
-
+################################################################################
 # Classification Tree example
 # Let's use the data frame kyphosis to predict a type of deformation (kyphosis) after surgery, from age in months (Age), number of vertebrae involved (Number), and the highest vertebrae operated on (Start).
 
@@ -280,4 +280,42 @@ text(fitKypt, use.n=TRUE, all=TRUE, cex=.8)
 
 # create attractive postscript plot of tree
 # post(fitKypt, file = "./tree.ps", title = "Classification Tree for Kyphosis")
-# 
+
+
+################################################################################
+# Regression Tree example
+# In this example we will predict car mileage from price, country, reliability, and car type. The data frame is cu.summary.
+
+# Regression Tree Example
+library(rpart)
+
+View(cu.summary)
+summary(cu.summary)
+
+# grow tree
+fitCars <- rpart(Mileage~Price + Country + Reliability + Type, method="anova", data=cu.summary)
+
+printcp(fitCars) # display the results
+plotcp(fitCars) # visualize cross-validation results
+summary(fitCars) # detailed summary of splits
+
+# create additional plots
+par(mfrow=c(1,2)) # two plots on one page
+rsq.rpart(fitCars) # visualize cross-validation results
+
+# plot tree
+plot(fitCars, uniform=TRUE, main="Regression Tree for Mileage ")
+text(fitCars, use.n=TRUE, all=TRUE, cex=.8)
+
+# create attractive postcript plot of tree
+# post(fitCars, file = "./tree2.ps", title = "Regression Tree for Mileage ")
+
+
+# prune the tree
+pfitCars<- prune(fitCars, cp=0.01160389) # from cptable   
+
+# plot the pruned tree
+plot(pfitCars, uniform=TRUE, main="Pruned Regression Tree for Mileage")
+text(pfitCars, use.n=TRUE, all=TRUE, cex=.8)
+# post(pfitCars, file = "c:/ptree2.ps", title = "Pruned Regression Tree for Mileage")
+ 
